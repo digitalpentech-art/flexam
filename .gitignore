@@ -1,0 +1,25 @@
+# Environments
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.pytest_cache/
+
+# OS/Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Database
+app.db
+*.sqlite3
+
+# Logs
+logs/
+*.log

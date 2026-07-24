@@ -1,0 +1,12 @@
+{% macro render_field(field) %}
+<div class="mb-4">
+    <label class="block text-gray-700 font-bold mb-2" for="{{ field.name }}">{{ field.label }}</label>
+    {% if field.field_type == 'text' %}
+        <input type="text" name="{{ field.name }}" id="{{ field.name }}" class="w-full border rounded p-2" {{ 'required' if field.is_required }}>
+    {% elif field.field_type == 'number' %}
+        <input type="number" name="{{ field.name }}" id="{{ field.name }}" class="w-full border rounded p-2" {{ 'required' if field.is_required }}>
+    {% elif field.field_type == 'boolean' %}
+        <input type="checkbox" name="{{ field.name }}" id="{{ field.name }}" class="mr-2">
+    {% endif %}
+</div>
+{% endmacro %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Schema Builder{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded shadow">
+    <h2 class="text-2xl font-bold mb-4">Schema Builder</h2>
+    <div id="schema-form">
+        <input type="text" id="entity-name" placeholder="Entity Name" class="border p-2 mb-4 w-full">
+        <div id="fields-list" class="space-y-2 mb-4">
+            <!-- Fields added here -->
+        </div>
+        <button onclick="addField()" class="bg-gray-200 px-4 py-2 rounded mb-4">+ Add Field</button>
+        <button onclick="saveSchema()" class="bg-blue-600 text-white px-4 py-2 rounded">Save Schema</button>
+    </div>
+</div>
+
+<script>
+    function addField() {
+        const div = document.createElement('div');
+        div.className = "field-item";
+        div.innerHTML = `<input type="text" placeholder="Field Name" class="field-name border p-2"> 
+                         <select class="field-type border p-2">
+                             <option value="text">Text</option>
+                             <option value="number">Number</option>
+                         </select>`;
+        document.getElementById('fields-list').appendChild(div);
+    }
+    
+    async function saveSchema() {
+        const entityName = document.getElementById('entity-name').value;
+        const fieldItems = document.querySelectorAll('.field-item');
+        const fields = Array.from(fieldItems).map(item => ({
+            name: item.querySelector('.field-name').value,
+            field_type: item.querySelector('.field-type').value
+        }));
+        
+        const response = await fetch('/api/metadata/schema/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: entityName, fields: fields})
+        });
+        
+        if (response.ok) alert('Schema saved!');
+    }
+</script>
+{% endblock %}

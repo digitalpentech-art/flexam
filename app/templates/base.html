@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLEXAM | {% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-800 text-white p-4 shadow-lg flex justify-between">
+        <a href="/" class="text-xl font-bold">FLEXAM</a>
+        <div class="space-x-4">
+            <a href="/admin" class="hover:text-blue-200">Admin</a>
+            <a href="/examiner" class="hover:text-blue-200">Examiner</a>
+            <a href="/auth/logout" class="hover:text-blue-200">Logout</a>
+        </div>
+    </nav>
+    <main class="p-6">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

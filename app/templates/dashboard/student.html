@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h2 class="text-3xl font-bold">Student Dashboard</h2>
+    <div class="bg-white p-6 rounded shadow">
+        <h3 class="text-xl font-semibold mb-4">Available Examinations</h3>
+        <table class="w-full text-left">
+            <thead>
+                <tr>
+                    <th class="pb-2">Examination</th>
+                    <th class="pb-2">Status</th>
+                    <th class="pb-2">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="py-2">Mathematics Theory</td>
+                    <td class="py-2 text-green-600">Active</td>
+                    <td class="py-2"><a href="#" class="text-blue-600 hover:underline">Start Exam</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
