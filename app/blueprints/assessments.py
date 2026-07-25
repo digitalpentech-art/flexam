@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_login import login_required
 from app.extensions import db
 from app.models.assessment import Assessment, AssessmentComponent
 from app.core.tenancy import get_current_tenant_id
@@ -6,16 +7,17 @@ from app.core.tenancy import get_current_tenant_id
 assessment_bp = Blueprint('assessments', __name__)
 
 @assessment_bp.route('/', methods=['POST'])
+@login_required
 def create_assessment():
     data = request.json
     tenant_id = get_current_tenant_id()
-    
+
     new_assessment = Assessment(
         tenant_id=tenant_id,
         name=data['name']
     )
     db.session.add(new_assessment)
-    
+
     # Add components
     for comp in data.get('components', []):
         new_component = AssessmentComponent(
@@ -26,7 +28,7 @@ def create_assessment():
             configuration=comp.get('configuration', {})
         )
         db.session.add(new_component)
-        
+
     db.session.commit()
-    
+
     return jsonify({"message": "Assessment created", "id": str(new_assessment.id)}), 201
