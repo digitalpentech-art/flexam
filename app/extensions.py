@@ -13,5 +13,10 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 csrf = CSRFProtect()
 limiter = Limiter(key_func=get_remote_address)
-talisman = Talisman()
+talisman = Talisman(
+    content_security_policy={
+        'default-src': ["'self'"],
+        'script-src': ["'self'", 'cdn.tailwindcss.com'],
+    }
+)
 cache = Cache()
