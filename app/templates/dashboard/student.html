@@ -3,23 +3,23 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <h2 class="text-3xl font-bold">Student Dashboard</h2>
-    <div class="bg-white p-6 rounded shadow">
-        <h3 class="text-xl font-semibold mb-4">Available Examinations</h3>
+<div class="max-w-7xl mx-auto space-y-8">
+    <h2 class="text-3xl font-extrabold text-gray-900">Student Dashboard</h2>
+    <div class="bg-white p-8 rounded-2xl shadow-sm">
+        <h3 class="text-xl font-bold mb-6">Available Examinations</h3>
         <table class="w-full text-left">
             <thead>
-                <tr>
-                    <th class="pb-2">Examination</th>
-                    <th class="pb-2">Status</th>
-                    <th class="pb-2">Action</th>
+                <tr class="text-gray-500 border-b">
+                    <th class="pb-4">Examination</th>
+                    <th class="pb-4">Status</th>
+                    <th class="pb-4">Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y">
                 <tr>
-                    <td class="py-2">Mathematics Theory</td>
-                    <td class="py-2 text-green-600">Active</td>
-                    <td class="py-2"><a href="#" class="text-blue-600 hover:underline">Start Exam</a></td>
+                    <td class="py-4 font-medium">Mathematics Theory</td>
+                    <td class="py-4 text-green-600 font-semibold">Active</td>
+                    <td class="py-4"><a href="#" class="text-blue-600 font-semibold hover:text-blue-800 transition">Start Exam &rarr;</a></td>
                 </tr>
             </tbody>
         </table>
