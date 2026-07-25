@@ -1,4 +1,4 @@
-.PHONY: setup migrate run test lint format
+.PHONY: setup migrate run prod test lint format
 
 setup:
 	pip install -r requirements.txt
@@ -10,6 +10,9 @@ migrate:
 
 run:
 	flask run
+
+prod:
+	gunicorn -c gunicorn_config.py run:app
 
 test:
 	pytest tests/
