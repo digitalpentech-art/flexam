@@ -4,17 +4,65 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto space-y-8">
-    <h2 class="text-3xl font-extrabold text-gray-900">Admin Dashboard</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition">
-            <h3 class="text-xl font-bold mb-2">Entity Management</h3>
-            <p class="mb-4 text-gray-600">Define custom entities for your institution.</p>
-            <a href="#" class="text-blue-600 font-semibold hover:text-blue-800 transition">Manage Entities &rarr;</a>
+    <h2 class="text-2xl font-bold text-gray-800 ">Tenant Admin Dashboard</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Registration Settings -->
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 class="text-lg font-bold text-gray-800  mb-4">Registration Settings</h3>
+            <p class="mb-4 text-sm text-gray-600 ">Status: 
+                <span class="px-2 py-1 rounded-full text-xs font-semibold {{ 'bg-green-100 text-green-800  ' if tenant.allow_self_registration else 'bg-red-100 text-red-800  ' }}">
+                    {{ 'Enabled' if tenant.allow_self_registration else 'Disabled' }}
+                </span>
+            </p>
+            {% if tenant.allow_self_registration %}
+                <div class="mb-4">
+                    <p class="text-xs font-semibold text-gray-500  uppercase mb-1">Registration Link:</p>
+                    <div class="flex items-center gap-2">
+                        <input type="text" readonly value="{{ url_for('auth.register', tenant_slug=tenant.slug, _external=True) }}" 
+                               class="text-xs text-gray-600  bg-gray-50  border border-gray-300  rounded p-2 flex-grow font-mono">
+                    </div>
+                </div>
+            {% endif %}
+            <form action="{{ url_for('admin.toggle_registration') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-800 transition text-sm font-semibold">
+                    {{ 'Disable' if tenant.allow_self_registration else 'Enable' }} Self-Registration
+                </button>
+            </form>
         </div>
-        <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition">
-            <h3 class="text-xl font-bold mb-2">Assessment Builder</h3>
-            <p class="mb-4 text-gray-600">Create and configure new assessments.</p>
-            <a href="#" class="text-blue-600 font-semibold hover:text-blue-800 transition">Build Assessments &rarr;</a>
+
+        <!-- Entity Management -->
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 class="text-lg font-bold text-gray-800  mb-4">Entity Management</h3>
+            <p class="mb-4 text-sm text-gray-600 ">Define custom entities and configure their UI.</p>
+            <div class="flex flex-col gap-2">
+                <a href="{{ url_for('admin.manage_entities') }}" class="text-primary font-semibold hover:underline text-sm">Manage Entities &rarr;</a>
+                <a href="{{ url_for('admin.ui_builder_selector') }}" class="text-primary font-semibold hover:underline text-sm">UI Builder &rarr;</a>
+            </div>
+        </div>
+
+        <!-- Assessment Management -->
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 class="text-lg font-bold text-gray-800  mb-4">Assessment Builder</h3>
+            <p class="mb-4 text-sm text-gray-600 ">Create and configure new assessments.</p>
+            <a href="{{ url_for('admin.build_assessment') }}" class="text-primary font-semibold hover:underline text-sm">Build Assessments &rarr;</a>
+        </div>
+        
+        <!-- User Management (New Capability) -->
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 class="text-lg font-bold text-gray-800  mb-4">User Management</h3>
+            <p class="mb-4 text-sm text-gray-600 ">Manage students, examiners, and staff.</p>
+            <a href="{{ url_for('admin.manage_users') }}" class="text-primary font-semibold hover:underline text-sm">Manage Users &rarr;</a>
+        </div>
+
+        <!-- Framework Management -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Framework Management</h3>
+            <div class="flex flex-col gap-2">
+                <a href="{{ url_for('admin_builder.manage_relationships') }}" class="text-primary font-semibold hover:underline text-sm">Manage Relationships &rarr;</a>
+                <a href="{{ url_for('admin_builder.manage_security') }}" class="text-primary font-semibold hover:underline text-sm">Manage Security Policies &rarr;</a>
+            </div>
         </div>
     </div>
 </div>

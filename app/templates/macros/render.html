@@ -1,0 +1,102 @@
+{#
+  Dynamic Page Renderer Macro
+  Expects a page object containing a 'layouts' relationship.
+#}
+
+{% macro render_page(page) %}
+<div class="grid grid-cols-12 gap-4">
+    {% for layout in page.layouts %}
+        <div style="grid-column: {{ layout.position.x + 1 }} / span {{ layout.position.w }}; 
+                    grid-row: {{ layout.position.y + 1 }} / span {{ layout.position.h }};">
+            {{ render_component(layout.component) }}
+        </div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{#
+  Component Dispatcher
+#}
+{% macro render_component(component) %}
+    {% set config = resolve_component_config(component) %}
+    {% if component.component_type == 'table' %}
+        {{ render_table(component, config) }}
+    {% elif component.component_type == 'form' %}
+        {{ render_form(component, config) }}
+    {% else %}
+        <div class="p-4 border border-red-200 bg-red-50 text-red-700">
+            Unknown component type: {{ component.component_type }}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% from 'macros/forms.html' import render_field %}
+
+{% macro render_menu(menu, current_user) %}
+    <nav class="space-y-1">
+        {% for item in menu.items|sort(attribute='order') %}
+            {% if not item.required_role or (current_user.is_authenticated and current_user.role.name == item.required_role) %}
+                <a href="{{ item.url }}" class="block py-2 px-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-primary">
+                    {% if item.icon %}<i class="{{ item.icon }}"></i> {% endif %}
+                    {{ item.label }}
+                </a>
+            {% endif %}
+        {% endfor %}
+    </nav>
+{% endmacro %}
+
+{#
+  Component Implementations
+#}
+{% macro render_table(component, config) %}
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-bold mb-4">{{ component.name }}</h3>
+        <table class="w-full text-left">
+            <thead>
+                <tr>
+                    {% for col in config.columns %}
+                        <th class="p-2 border-b">{{ col.label }}</th>
+                    {% endfor %}
+                    {% if config.actions %}
+                        <th class="p-2 border-b">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in config.data %}
+                <tr class="border-b">
+                    {% for col in config.columns %}
+                        <td class="p-2">{{ row[col.key] }}</td>
+                    {% endfor %}
+                    {% if config.actions %}
+                        <td class="p-2 flex gap-2">
+                            {% for action in config.actions %}
+                                {% set url = action.url_template.replace('{{ id }}', row.id|string) %}
+                                <a href="{{ url }}" class="{{ action.css_class }}">{{ action.label }}</a>
+                            {% endfor %}
+                        </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% from 'macros/forms.html' import render_field, render_dynamic_layout %}
+
+{% macro render_form(component, config) %}
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="font-bold mb-4">{{ component.name }}</h3>
+        <form action="{{ config.submit_url }}" method="POST">
+            {% if component.entity_id %}
+                {# Use dynamic layout if entity is attached #}
+                {{ render_dynamic_layout(component.entity) }}
+            {% else %}
+                {# Fallback to simple vertical list #}
+                {% for field in config.fields %}
+                    {{ render_field(field) }}
+                {% endfor %}
+            {% endif %}
+            <button type="submit" class="bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-800 transition mt-4">Submit</button>
+        </form>
+    </div>
+{% endmacro %}

@@ -1,0 +1,27 @@
+{
+  "name": "flexam",
+  "version": "1.0.0",
+  "description": "Flexible Examination, Assessment and Academic Management Platform.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digitalpentech-art/flexam.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/digitalpentech-art/flexam/issues"
+  },
+  "homepage": "https://github.com/digitalpentech-art/flexam#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.0",
+    "@types/node": "^26.1.2"
+  }
+}

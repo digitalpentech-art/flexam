@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Edit Layout: {{ page.name }}{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Edit Layout: {{ page.name }}</h1>
+    
+    <div id="grid-canvas" class="grid grid-cols-12 gap-4 border-2 border-dashed border-gray-300 p-4 min-h-[500px]"
+         x-data="{ draggedLayout: null }"
+         @dragover.prevent
+         @drop.prevent="handleDrop($event, draggedLayout)">
+            {% for layout in page.layouts %}
+            <div class="component-card bg-white shadow rounded-lg p-4 cursor-move" 
+                 data-layout-id="{{ layout.id }}"
+                 draggable="true"
+                 @dragstart="draggedLayout = $el"
+                 style="grid-column: {{ layout.position.x + 1 }} / span {{ layout.position.w }}; 
+                        grid-row: {{ layout.position.y + 1 }} / span {{ layout.position.h }};">
+                <h3 class="font-bold">{{ layout.component.name }}</h3>
+                <p class="text-xs text-gray-500">Type: {{ layout.component.component_type }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            async function handleDrop(event, draggedEl) {
+                if (!draggedEl) return;
+                // ... rest of logic remains same ...
+                const rect = document.getElementById('grid-canvas').getBoundingClientRect();
+                const x = Math.floor((event.clientX - rect.left) / (rect.width / 12));
+                const y = Math.floor((event.clientY - rect.top) / 100); 
+
+                const layoutId = draggedEl.dataset.layoutId;
+                const currentStyle = window.getComputedStyle(draggedEl);
+                const w = parseInt(currentStyle.gridColumnEnd.split(' span ')[1]) || 1;
+                const h = parseInt(currentStyle.gridRowEnd.split(' span ')[1]) || 1;
+
+                const response = await fetch(`/api/layouts/${layoutId}/position`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ x: Math.max(0, Math.min(x, 12 - w)), y: Math.max(0, y), w, h })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error saving position.');
+                }
+            }
+        </script>
+    {% endblock %}

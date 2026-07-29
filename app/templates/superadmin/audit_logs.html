@@ -1,0 +1,37 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Audit Logs</h1>
+
+<form method="GET" class="mb-6 flex gap-2">
+    <select name="tenant_id" class="border p-2 rounded">
+        <option value="">All Tenants</option>
+        {% for t in tenants %}
+        <option value="{{ t.id }}" {% if selected_tenant == t.id|string %}selected{% endif %}>{{ t.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
+</form>
+
+<div class="overflow-x-auto">
+    <table class="w-full bg-white  rounded-lg shadow overflow-hidden text-sm">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="p-4 text-left">Timestamp</th>
+                <th class="p-4 text-left">Action</th>
+                <th class="p-4 text-left">Entity</th>
+                <th class="p-4 text-left">Tenant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr class="border-t">
+                <td class="p-4">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td class="p-4">{{ log.action }}</td>
+                <td class="p-4">{{ log.entity_type }} ({{ log.entity_id }})</td>
+                <td class="p-4">{{ log.tenant_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% from 'macros/ui.html' import input %}
+
+{% block title %}Edit Entity{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-6">
+    <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+        <h2 class="text-2xl font-bold text-gray-800  mb-6">Edit Entity: {{ entity.name }}</h2>
+        <form method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {{ input('Name', 'name', value=entity.name, type='text', required=true) }}
+            {{ input('Plural Name', 'plural_name', value=entity.plural_name or '', type='text') }}
+            {{ input('Description', 'description', value=entity.description or '', type='text') }}
+            <button type="submit" class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

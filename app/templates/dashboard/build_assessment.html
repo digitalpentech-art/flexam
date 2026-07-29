@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% from 'macros/ui.html' import input, icon %}
+
+{% block title %}Build Assessment{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-8">
+
+    <!-- Existing Assessments List -->
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Existing Assessments</h3>
+        {% if assessments %}
+            {% from 'macros/table.html' import table %}
+            {% set headers = [
+                {'key': 'name', 'label': 'Name'},
+                {'key': 'actions', 'label': 'Actions', 'type': 'html'}
+            ] %}
+            {% set data = [] %}
+            {% for assess in assessments %}
+                {% set actions %}
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('assessments.get_assessment', assessment_id=assess.id) }}" title="View" class="text-gray-500 hover:text-primary transition">
+                            {{ icon('manage', 'View') }}
+                        </a>
+                        <a href="{{ url_for('admin.edit_assessment', assessment_id=assess.id) }}" title="Edit" class="text-gray-500 hover:text-primary transition">
+                            {{ icon('edit', 'Edit') }}
+                        </a>
+                        <form action="{{ url_for('admin.delete_assessment', assessment_id=assess.id) }}" method="POST" onsubmit="return confirm('Delete assessment?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" title="Delete" class="text-gray-500 hover:text-red-600 transition">
+                                {{ icon('delete', 'Delete') }}
+                            </button>
+                        </form>
+                    </div>
+                {% endset %}
+                {% set _ = data.append({'name': assess.name, 'actions': actions|trim}) %}
+            {% endfor %}
+            {{ table('assessments-table', headers, data) }}
+        {% else %}
+            <p class="text-sm text-gray-500 italic">No assessments found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Assessment Builder Form -->
+    <div id="assessmentSummary" class="bg-blue-50 /20 p-6 rounded-lg border border-blue-100  hidden">
+        <h3 class="text-xs font-semibold text-primary uppercase tracking-wide">Current Assessment</h3>
+        <p id="summaryName" class="text-xl font-bold text-gray-800 "></p>
+    </div>
+
+    <div class="bg-white  p-8 rounded-lg shadow-sm border border-gray-200 ">
+        <h2 class="text-xl font-bold text-gray-800  mb-6">Build New Assessment</h2>
+        <form id="assessmentForm" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {{ input('Assessment Name', 'name', required=true) }}
+            
+            <h3 class="text-sm font-semibold text-gray-800 ">Add First Component</h3>
+            {{ input('Component Name', 'comp_name', required=true) }}
+            {{ input('Component Type', 'comp_type', required=true) }}
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700  mb-1.5">Enforced Question Type (Optional)</label>
+                <select name="enforced_type" class="w-full px-4 py-2.5 border border-gray-300  rounded-lg bg-white  text-gray-900  focus:ring-2 focus:ring-primary focus:border-primary transition">
+                    <option value="">Flexible (Mixed Types)</option>
+                    <option value="mcq">MCQ</option>
+                    <option value="essay">Essay</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition">Create Assessment</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const nameInput = document.querySelector('input[name="name"]');
+    const summaryDiv = document.getElementById('assessmentSummary');
+    const summaryName = document.getElementById('summaryName');
+
+    nameInput.addEventListener('input', (e) => {
+        if (e.target.value) {
+            summaryDiv.classList.remove('hidden');
+            summaryName.innerText = e.target.value;
+        } else {
+            summaryDiv.classList.add('hidden');
+        }
+    });
+
+    document.getElementById('assessmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Simple client-side validation
+        const name = document.querySelector('input[name="name"]').value;
+        const compName = document.querySelector('input[name="comp_name"]').value;
+        const compType = document.querySelector('input[name="comp_type"]').value;
+        const enforcedType = document.querySelector('select[name="enforced_type"]').value;
+
+        if (!name || !compName || !compType) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        const formData = new FormData(e.target);
+        
+        const payload = {
+            name: name,
+            components: [{
+                name: compName,
+                component_type: compType,
+                enforced_question_type: enforcedType || null,
+                weight: 1.0
+            }]
+        };
+        
+        const response = await fetch('/api/assessments/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': formData.get('csrf_token')
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert('Assessment created successfully!');
+            // Refresh the page to show the new assessment in the list
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Failed to create assessment: ' + (error.error || 'Unknown error'));
+        }
+    });
+</script>
+{% endblock %}

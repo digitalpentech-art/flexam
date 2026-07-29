@@ -12,13 +12,16 @@ migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 csrf = CSRFProtect()
+
+# Initialize limiter with a placeholder, will be configured in create_app
 limiter = Limiter(key_func=get_remote_address)
-talisman = Talisman(
-    content_security_policy={
-        'default-src': ["'self'"],
-        'script-src': ["'self'", 'cdn.tailwindcss.com', "'unsafe-inline'"],
-        'style-src': ["'self'", 'cdn.tailwindcss.com', "'unsafe-inline'"],
-        'connect-src': ["'self'", 'https://cdn.tailwindcss.com'],
-    }
-)
+
+csp = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'", 'cdn.tailwindcss.com', "'unsafe-inline'"],
+    'style-src': ["'self'", 'cdn.tailwindcss.com', "'unsafe-inline'"],
+    'connect-src': ["'self'", 'https://cdn.tailwindcss.com'],
+}
+
+talisman = Talisman()
 cache = Cache()

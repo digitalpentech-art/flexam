@@ -1,0 +1,24 @@
+{% macro flash_notifications() %}
+<div class="fixed top-20 inset-x-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none" x-data>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div x-data="{ show: true }" 
+                     x-init="console.log('Notification showing'); setTimeout(() => { console.log('Hiding notification'); show = false }, 3000)"
+                     x-show="show"
+                     x-transition:leave="transition ease-out duration-500"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="px-4 py-2 rounded-full shadow-sm border backdrop-blur-sm text-xs font-medium text-center pointer-events-auto
+                     {% if category == 'success' %}bg-green-50/70 text-green-800 border-green-200
+                     {% elif category == 'error' %}bg-red-50/70 text-red-800 border-red-200
+                     {% elif category == 'warning' %}bg-yellow-50/70 text-yellow-800 border-yellow-200
+                     {% else %}bg-blue-50/70 text-blue-800 border-blue-200{% endif %}">
+                    
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+{% endmacro %}

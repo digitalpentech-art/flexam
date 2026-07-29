@@ -11,6 +11,7 @@ class Tenant(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = db.Column(db.String(128), nullable=False)
     slug = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    allow_self_registration = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 
@@ -46,6 +47,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(64))
     last_name = db.Column(db.String(64))
     is_active = db.Column(db.Boolean, default=True)
+    is_superadmin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('roles.id'))

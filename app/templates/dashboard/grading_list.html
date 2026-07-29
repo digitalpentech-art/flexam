@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Pending Grading{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6" x-data="{ search: '' }">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800 ">Pending Grading</h2>
+        <input type="text" x-model="search" placeholder="Search by student or exam..." class="px-4 py-2 border border-gray-300  rounded-lg text-sm bg-white  text-gray-900  focus:ring-2 focus:ring-primary focus:border-primary transition w-full md:w-64">
+    </div>
+    
+    <div class="bg-white  rounded-lg shadow-sm border border-gray-200  overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-100  text-gray-700  uppercase text-xs font-semibold">
+                <tr>
+                    <th class="p-4">Student</th>
+                    <th class="p-4">Examination</th>
+                    <th class="p-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm text-gray-700 ">
+                {% for attempt in attempts %}
+                <tr class="border-t border-gray-200  hover:bg-gray-50 "
+                    x-show="search === '' || '{{ attempt.user.email }}'.toLowerCase().includes(search.toLowerCase()) || '{{ attempt.examination.name }}'.toLowerCase().includes(search.toLowerCase())">
+                    <td class="p-4 font-medium text-gray-800 ">{{ attempt.user.email }}</td>
+                    <td class="p-4">{{ attempt.examination.name }}</td>
+                    <td class="p-4 text-right">
+                        <a href="{{ url_for('grading.grade_attempt', attempt_id=attempt.id) }}" class="text-primary font-semibold hover:underline">Grade</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td class="p-4 text-gray-500 " colspan="3">No pending attempts.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

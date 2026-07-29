@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Manage Components{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Component Registry</h1>
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="min-w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for component in components %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ component.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ component.component_type }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{{ url_for('admin.edit_component', component_id=component.id) }}" class="text-primary hover:text-blue-800">Configure</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

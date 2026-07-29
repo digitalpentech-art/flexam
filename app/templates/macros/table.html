@@ -1,0 +1,31 @@
+{% macro table(id, headers, data) %}
+<div id="{{ id }}" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <!-- Table -->
+    <table class="w-full text-left">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs font-semibold">
+            <tr>
+                {% for header in headers %}
+                <th class="p-4">
+                    {{ header.label }}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="text-sm text-gray-700">
+            {% for row in data %}
+                <tr class="border-t border-gray-200 hover:bg-gray-50">
+                    {% for header in headers %}
+                    <td class="p-4">
+                        {% if header.type == 'html' %}
+                        <div>{{ row[header.key]|safe }}</div>
+                        {% else %}
+                        <span>{{ row[header.key] }}</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}

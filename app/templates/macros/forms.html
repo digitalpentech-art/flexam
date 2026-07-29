@@ -1,12 +1,49 @@
 {% macro render_field(field) %}
 <div class="mb-4">
-    <label class="block text-gray-700 font-bold mb-2" for="{{ field.name }}">{{ field.label }}</label>
-    {% if field.field_type == 'text' %}
-        <input type="text" name="{{ field.name }}" id="{{ field.name }}" class="w-full border rounded p-2" {{ 'required' if field.is_required }}>
-    {% elif field.field_type == 'number' %}
-        <input type="number" name="{{ field.name }}" id="{{ field.name }}" class="w-full border rounded p-2" {{ 'required' if field.is_required }}>
+    <label class="block text-gray-700  font-medium mb-1.5" for="{{ field.name }}">{{ field.label }}</label>
+    {% if field.field_type in ['text', 'number', 'password', 'email'] %}
+        <input type="{{ field.field_type }}" name="{{ field.name }}" id="{{ field.name }}" 
+               class="w-full border border-gray-300  rounded-lg px-3 py-2.5 bg-white  text-gray-900  focus:ring-2 focus:ring-primary focus:border-primary transition" 
+               {{ 'required' if field.is_required }}>
     {% elif field.field_type == 'boolean' %}
-        <input type="checkbox" name="{{ field.name }}" id="{{ field.name }}" class="mr-2">
+        <div class="flex items-center">
+            <input type="checkbox" name="{{ field.name }}" id="{{ field.name }}" class="h-4 w-4 text-primary focus:ring-primary border-gray-300  rounded">
+            <span class="ml-2 text-gray-700 ">{{ field.label }}</span>
+        </div>
     {% endif %}
+</div>
+{% endmacro %}
+
+{% macro render_dynamic_layout(entity, record_data=None) %}
+<div class="grid grid-cols-12 gap-4">
+    {% for field in entity.fields %}
+        {% set config = field.ui_config %}
+        {% set styling = config.get('styling', {}) %}
+        <div style="grid-column: {{ (config.get('x', 0) + 1) }} / span {{ config.get('w', 4) }}; 
+                    grid-row: {{ (config.get('y', 0) + 1) }} / span {{ config.get('h', 1) }};"
+             class="{{ styling.get('typography', 'text-base') }} {{ styling.get('align', 'text-left') }}">
+            
+            <label class="block text-sm font-semibold mb-1 text-gray-700">{{ field.label }}</label>
+            
+            {% if field.field_type in ['text', 'string'] %}
+                <input type="text" name="{{ field.name }}" value="{{ record_data[field.name] if record_data else '' }}" 
+                       class="w-full p-2 border {{ styling.get('border', 'border') }} border-gray-300 rounded focus:ring-2 focus:ring-primary transition shadow-sm">
+            {% elif field.field_type in ['number', 'integer', 'decimal'] %}
+                <input type="number" name="{{ field.name }}" value="{{ record_data[field.name] if record_data else '' }}" 
+                       class="w-full p-2 border {{ styling.get('border', 'border') }} border-gray-300 rounded focus:ring-2 focus:ring-primary transition shadow-sm">
+            {% elif field.field_type == 'boolean' %}
+                <div class="flex items-center mt-2">
+                    <input type="checkbox" name="{{ field.name }}" {{ 'checked' if record_data and record_data[field.name] }}
+                           class="h-5 w-5 text-primary focus:ring-primary border-gray-300 rounded transition">
+                </div>
+            {% elif field.field_type == 'date' %}
+                 <input type="date" name="{{ field.name }}" value="{{ record_data[field.name] if record_data else '' }}" 
+                       class="w-full p-2 border {{ styling.get('border', 'border') }} border-gray-300 rounded focus:ring-2 focus:ring-primary transition shadow-sm">
+            {% else %}
+                 <input type="text" name="{{ field.name }}" value="{{ record_data[field.name] if record_data else '' }}" 
+                       class="w-full p-2 border {{ styling.get('border', 'border') }} border-gray-300 rounded focus:ring-2 focus:ring-primary transition shadow-sm">
+            {% endif %}
+        </div>
+    {% endfor %}
 </div>
 {% endmacro %}

@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}UI Builder{% endblock %}
+
+{% block content %}
+<!-- Gridstack CSS & JS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/9.4.0/gridstack.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/9.4.0/gridstack-all.min.js"></script>
+
+<div class="max-w-7xl mx-auto px-4 py-6" x-data="uiBuilder()">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Form Builder: {{ entity.name }}</h2>
+        <button @click="saveLayout" class="bg-primary text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-800 transition">Save Layout</button>
+    </div>
+
+    <div class="flex gap-6">
+        <!-- Palette -->
+        <div class="w-64 bg-white p-4 rounded-lg border border-gray-200">
+            <h3 class="font-bold mb-4">Field Palette</h3>
+            <div id="palette" class="space-y-2">
+                <template x-for="comp in registry" :key="comp.component_type">
+                    <div class="grid-stack-item cursor-move" 
+                         data-gs-w="4" data-gs-h="1" 
+                         :data-type="comp.component_type">
+                        <div class="grid-stack-item-content bg-gray-50 border border-gray-200 rounded p-2 text-center">
+                            <span class="text-xs font-bold" x-text="comp.component_type.toUpperCase()"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="flex-grow bg-gray-100 p-2 rounded-lg border border-gray-300 min-h-[600px]">
+            <div class="grid-stack" x-ref="grid">
+                {% for field in entity.fields %}
+                <div class="grid-stack-item"
+                     gs-w="{{ field.ui_config.get('w', 4) }}"
+                     gs-h="{{ field.ui_config.get('h', 1) }}"
+                     gs-x="{{ field.ui_config.get('x', 0) }}"
+                     gs-y="{{ field.ui_config.get('y', 0) }}"
+                     gs-id="{{ field.id }}"
+                     data-type="{{ field.field_type }}"
+                     data-config='{{ field.ui_config.get("styling", "{}") | tojson }}'>
+                    <div class="grid-stack-item-content bg-white border border-gray-200 rounded shadow-sm p-4 flex justify-between items-center cursor-pointer" 
+                         @click="selectField('{{ field.id }}', $el.parentElement)">
+                        <div>
+                            <span class="font-medium text-gray-800 text-sm truncate">{{ field.label }}</span>
+                            <span class="text-xs text-gray-500 block">{{ field.field_type }}</span>
+                        </div>
+                        <button @click.stop="deleteField('{{ field.id }}')" class="text-red-500 hover:text-red-700">Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Inspector Panel -->
+        <div class="w-72 bg-white p-4 rounded-lg border border-gray-200" x-show="selectedField.el">
+            <h3 class="font-bold mb-4">Inspector</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Typography</label>
+                    <select x-model="selectedField.styling.typography" class="w-full p-2 border rounded" @change="applyStyles">
+                        <option value="text-sm">Small</option>
+                        <option value="text-base">Base</option>
+                        <option value="text-lg">Large</option>
+                        <option value="text-2xl font-bold">Heading</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Border Style</label>
+                    <select x-model="selectedField.styling.border" class="w-full p-2 border rounded" @change="applyStyles">
+                        <option value="border">Soft</option>
+                        <option value="border-2">Solid</option>
+                        <option value="border-b-2">Underlined</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Alignment</label>
+                    <div class="flex gap-2">
+                        <button @click="selectedField.styling.align='text-left'; applyStyles()" class="p-2 border rounded">Left</button>
+                        <button @click="selectedField.styling.align='text-center'; applyStyles()" class="p-2 border rounded">Center</button>
+                        <button @click="selectedField.styling.align='text-right'; applyStyles()" class="p-2 border rounded">Right</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" x-cloak>
+        <div class="bg-white p-6 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
+            <h3 class="text-lg font-bold mb-4" x-text="'Configure ' + editingField.type"></h3>
+            
+            <template x-for="(schema, key) in editingField.schema" :key="key">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1" x-text="schema.label"></label>
+                    <template x-if="schema.type === 'text'">
+                        <input type="text" x-model="editingField.config[key]" class="w-full p-2 border rounded">
+                    </template>
+                    <template x-if="schema.type === 'boolean'">
+                        <input type="checkbox" x-model="editingField.config[key]" class="h-4 w-4">
+                    </template>
+                </div>
+            </template>
+
+            <div class="flex justify-end gap-2 mt-6">
+                <button @click="showModal = false" class="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+                <button @click="saveFieldConfig" class="bg-primary text-white px-4 py-2 rounded">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function uiBuilder() {
+        const instance = {
+            registry: [],
+            showModal: false,
+            editingField: { type: '', config: {}, schema: {} },
+            selectedField: { el: null, styling: { typography: 'text-base', border: 'border', align: 'text-left' } },
+            async init() {
+                console.log("UI Builder: Attempting Init...");
+                try {
+                    const response = await fetch('/api/components/registry');
+                    if (!response.ok) throw new Error("Registry fetch failed");
+                    this.registry = await response.json();
+                    
+                    // Wait for palette to render before setting up drag-in
+                    this.$nextTick(() => {
+                        this.initializeGrid();
+                    });
+                } catch (e) {
+                    console.error("UI Builder Init Error:", e);
+                }
+            },
+            initializeGrid() {
+                console.log("UI Builder: Initializing GridStack...");
+                if (typeof GridStack === 'undefined') {
+                    console.error("GridStack is not loaded.");
+                    return;
+                }
+                this.grid = GridStack.init({
+                    column: 12,
+                    margin: 5,
+                    cellHeight: 60,
+                    animate: true,
+                    acceptWidgets: true
+                }, this.$refs.grid);
+                
+                this.grid.on('added', (event, items) => {
+                    items.forEach(item => {
+                        const type = item.el.getAttribute('data-type');
+                        const id = item.el.getAttribute('gs-id') || `new_${Math.random().toString(36).substr(2, 9)}`;
+                        
+                        // Default styling for new items
+                        const defaultConfig = { typography: 'text-base', border: 'border', align: 'text-left' };
+                        item.el.setAttribute('data-config', JSON.stringify(defaultConfig));
+                        item.el.setAttribute('gs-id', id);
+
+                        // Inject the full interactive content for new items from palette
+                        if (item.el.querySelector('.text-xs.font-bold')) { // Check if it's from palette
+                             item.el.innerHTML = `
+                                <div class="grid-stack-item-content bg-white border border-gray-200 rounded shadow-sm p-4 flex justify-between items-center cursor-pointer" 
+                                     onclick="window.uiBuilderInstance.selectField('${id}', this.parentElement)">
+                                    <div>
+                                        <span class="font-medium text-gray-800 text-sm truncate">New ${type.toUpperCase()}</span>
+                                        <span class="text-xs text-gray-500 block">${type}</span>
+                                    </div>
+                                    <button onclick="event.stopPropagation(); window.uiBuilderInstance.deleteField('${id}')" class="text-red-500 hover:text-red-700">Delete</button>
+                                </div>
+                            `;
+                        }
+
+                        // Trigger modal for new field configuration if it's from registry
+                        if (!item.id && !item.el.hasAttribute('data-field-config')) {
+                            const comp = this.registry.find(c => c.component_type === type);
+                            if (comp) {
+                                this.openConfigModal(type, comp.property_schema, item.el);
+                            }
+                        }
+                    });
+                });
+
+                GridStack.setupDragIn('#palette .grid-stack-item', {
+                    appendTo: 'body',
+                    helper: 'clone'
+                });
+                console.log("UI Builder: GridStack initialized successfully.");
+            },
+            openConfigModal(type, schema, el) {
+                this.editingField = {
+                    type: type,
+                    schema: schema,
+                    config: {},
+                    el: el
+                };
+                // Initialize config with defaults
+                Object.keys(schema).forEach(key => {
+                    this.editingField.config[key] = schema[key].default || '';
+                });
+                this.showModal = true;
+            },
+            saveFieldConfig() {
+                if (this.editingField.el) {
+                    // Update the element with the new configuration
+                    // For now we store it in a data attribute
+                    this.editingField.el.setAttribute('data-field-config', JSON.stringify(this.editingField.config));
+                    // If it's a newly added field, we might want to update the label visually
+                    const label = this.editingField.el.querySelector('span.font-medium');
+                    if (label) {
+                        label.innerText = `New ${this.editingField.type.toUpperCase()}`;
+                    }
+                }
+                this.showModal = false;
+            },
+            selectField(fieldId, el) {
+                this.selectedField = {
+                    id: fieldId,
+                    el: el,
+                    styling: JSON.parse(el.getAttribute('data-config') || '{"typography": "text-base", "border": "border", "align": "text-left"}')
+                };
+            },
+            applyStyles() {
+                if (this.selectedField.el) {
+                    this.selectedField.el.setAttribute('data-config', JSON.stringify(this.selectedField.styling));
+                    // Update visual representation in grid
+                    const content = this.selectedField.el.querySelector('.grid-stack-item-content');
+                    if (content) {
+                        content.className = `grid-stack-item-content bg-white rounded shadow-sm p-4 flex justify-between items-center cursor-pointer ${this.selectedField.styling.border} ${this.selectedField.styling.typography} ${this.selectedField.styling.align}`;
+                    }
+                }
+            },
+            deleteField(fieldId) {
+                const el = this.$refs.grid.querySelector(`[gs-id="${fieldId}"]`);
+                if (el) {
+                    this.grid.removeWidget(el, true, true);
+                    this.selectedField = { el: null, styling: {} };
+                } else {
+                    // It might be a newly added field without an ID yet
+                    // GridStack might need the actual DOM element
+                    const items = this.grid.getGridItems();
+                    const item = items.find(i => i.gridstackNode && i.gridstackNode.id === fieldId);
+                    if (item) {
+                        this.grid.removeWidget(item, true, true);
+                    }
+                }
+            },
+            async saveLayout() {
+                if (!this.grid) return;
+                const items = this.grid.save();
+                // Map items to backend expected format
+                const layout = items.map(item => {
+                    const el = item.el;
+                    return {
+                        field_id: item.id || null, // Handle newly added fields
+                        field_type: el.getAttribute('data-type'),
+                        position: { x: item.x, y: item.y, width: item.w, height: item.h },
+                        styling: JSON.parse(el.getAttribute('data-config') || '{}'),
+                        config: JSON.parse(el.getAttribute('data-field-config') || '{}')
+                    };
+                });
+
+                const response = await fetch('/api/metadata/entities/{{ entity.id }}/layout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ fields: layout })
+                });
+
+                if (response.ok) {
+                    alert('Layout saved successfully!');
+                } else {
+                    alert('Failed to save layout.');
+                }
+            }
+        };
+        window.uiBuilderInstance = instance;
+        return instance;
+    }
+</script>
+{% endblock %}
+

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% from 'macros/table_advanced.html' import table_advanced %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800">Manage Users</h2>
+        </div>
+        
+        <div class="p-6">
+            {{ table_advanced(
+                id="users-table",
+                headers=[
+                    {'key': 'email', 'label': 'Email'},
+                    {'key': 'role', 'label': 'Role'}
+                ],
+                data=users
+            ) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

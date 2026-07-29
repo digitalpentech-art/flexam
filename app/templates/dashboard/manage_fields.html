@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% from 'macros/ui.html' import input %}
+
+{% block title %}Fields for {{ entity.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <h2 class="text-2xl font-bold text-gray-800 ">Fields for {{ entity.name }}</h2>
+
+    <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800 ">Existing Fields</h3>
+        <div class="space-y-3">
+            {% for field in entity.fields.order_by('position') %}
+            <form class="field-edit-form p-4 bg-gray-50  rounded-lg flex flex-col sm:flex-row gap-3 items-center border border-gray-200 ">
+                <input type="hidden" name="field_id" value="{{ field.id }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="text" name="label" value="{{ field.label }}" class="p-2 border border-gray-300 rounded-lg w-full sm:w-auto" required>
+                <select name="field_type" class="p-2 border border-gray-300 rounded-lg w-full sm:w-auto text-sm">
+                    {% for ft in field_types %}
+                        <option value="{{ ft }}" {% if field.field_type == ft %}selected{% endif %}>{{ ft|capitalize }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="position" value="{{ field.position }}" class="p-2 border border-gray-300 rounded-lg w-full sm:w-16 text-sm" placeholder="Pos">
+                <div class="flex gap-3 text-sm text-gray-600 ">
+                    <label class="flex items-center gap-1"><input type="checkbox" name="is_required" {% if field.is_required %}checked{% endif %} class="rounded text-primary focus:ring-primary"> Req</label>
+                    <label class="flex items-center gap-1"><input type="checkbox" name="is_unique" {% if field.is_unique %}checked{% endif %} class="rounded text-primary focus:ring-primary"> Uni</label>
+                </div>
+                <button type="submit" name="action" value="save" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-800 text-sm transition">Save</button>
+                <button type="submit" name="action" value="delete" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm transition">Delete</button>
+            </form>
+            {% else %}
+            <p class="text-gray-500">No fields defined yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800 ">Add New Field</h3>
+        <form action="{{ url_for('admin.manage_fields', entity_id=entity.id) }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {{ input('Label', 'label', required=true) }}
+            {{ input('Internal Name', 'name', required=true) }}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Field Type</label>
+                <select name="field_type" id="field_type" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition" onchange="toggleRelatedEntity(this)">
+                    {% for ft in field_types %}
+                        <option value="{{ ft }}">{{ ft|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="related_entity_container" class="mb-4 hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Related Entity</label>
+                <select name="related_entity_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition">
+                    {% for ent in EntityDefinition.query.filter_by(tenant_id=current_user.tenant_id).all() %}
+                        <option value="{{ ent.id }}">{{ ent.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-blue-800 transition">Add Field</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleRelatedEntity(select) {
+        const container = document.getElementById('related_entity_container');
+        if (select.value === 'reference') {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    }
+
+    // Handle field updates/deletions
+    document.querySelectorAll('.field-edit-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const fieldId = data.field_id;
+            const action = e.submitter.value;
+            
+            if (action === 'delete') {
+                if (!confirm('Delete this field?')) return;
+                const response = await fetch('/api/metadata/fields/' + fieldId, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': data.csrf_token
+                    }
+                });
+                if (response.ok) {
+                    alert('Field deleted successfully!');
+                    location.reload();
+                } else {
+                    alert('Failed to delete field.');
+                }
+            } else {
+                const payload = {
+                    label: data.label,
+                    field_type: data.field_type,
+                    position: parseInt(data.position),
+                    is_required: e.target.querySelector('input[name="is_required"]').checked,
+                    is_unique: e.target.querySelector('input[name="is_unique"]').checked
+                };
+                
+                const response = await fetch('/api/metadata/fields/' + fieldId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': data.csrf_token
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    alert('Field updated successfully!');
+                    location.reload();
+                } else {
+                    alert('Failed to update field.');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

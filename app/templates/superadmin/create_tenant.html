@@ -1,0 +1,30 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Create Tenant & Initial Admin</h1>
+<form method="POST" class="bg-white  p-6 rounded-lg shadow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <h2 class="text-xl font-semibold mb-4">Tenant Details</h2>
+    <div class="mb-4">
+        <label class="block mb-2">Name</label>
+        <input type="text" name="name" required class="border p-2 w-full"/>
+    </div>
+    <div class="mb-4">
+        <label class="block mb-2">Slug</label>
+        <input type="text" name="slug" required class="border p-2 w-full"/>
+    </div>
+    <h2 class="text-xl font-semibold mb-4">Initial Admin Details</h2>
+    <div class="mb-4">
+        <label class="block mb-2">Admin Email</label>
+        <input type="email" name="admin_email" required class="border p-2 w-full"/>
+    </div>
+    <div class="mb-4">
+        <label class="block mb-2">Admin Password</label>
+        <input type="password" name="admin_password" required class="border p-2 w-full"/>
+    </div>
+    <div class="mb-4">
+        <label class="block mb-2">Optional: JSON Schema Configuration</label>
+        <textarea name="schema_config" rows="10" class="border p-2 w-full font-mono text-sm" placeholder='{"entities": [{"name": "Item", "fields": [{"name": "val", "label": "Value", "field_type": "string"}]}]}'></textarea>
+    </div>
+    <button type="submit" class="bg-blue-600 text-white p-2 rounded">Create Tenant & Admin</button>
+</form>
+{% endblock %}

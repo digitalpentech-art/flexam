@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Entity for UI Builder{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6">
+    <h2 class="text-2xl font-bold text-gray-800  mb-6">Select Entity to Build UI</h2>
+    <div class="bg-white  rounded-lg shadow-sm border border-gray-200  overflow-hidden">
+        <ul class="divide-y divide-gray-200">
+            {% for entity in entities %}
+            <li class="p-4 hover:bg-gray-50   flex justify-between items-center">
+                <span class="font-medium text-gray-800 ">{{ entity.name }}</span>
+                <a href="{{ url_for('dashboard.ui_builder', entity_id=entity.id) }}" class="text-primary font-semibold hover:underline text-sm">Open Builder &rarr;</a>
+            </li>
+            {% else %}
+            <li class="p-4 text-gray-500 italic">No entities available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

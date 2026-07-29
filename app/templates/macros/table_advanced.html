@@ -1,0 +1,85 @@
+{% macro table_advanced(id, headers, data) %}
+<div x-data="tableComponent({{ data|tojson|safe }})" id="{{ id }}" class="space-y-4">
+
+    <!-- Search/Filters -->
+    <div class="flex justify-between">
+        <input x-model="search" type="text" placeholder="Search..." class="border rounded-lg px-4 py-2 w-64">
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-100 text-gray-700 uppercase text-xs font-semibold">
+                <tr>
+                    {% for header in headers %}
+                    <th class="p-4 cursor-pointer hover:bg-gray-200" @click="sortBy('{{ header.key }}')">
+                        {{ header.label }}
+                        <span x-show="sortColumn === '{{ header.key }}'" x-text="sortAsc ? '▲' : '▼'"></span>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="text-sm text-gray-700">
+                <template x-for="row in paginatedData" :key="row.id">
+                    <tr class="border-t border-gray-200 hover:bg-gray-50">
+                        {% for header in headers %}
+                        <td class="p-4" x-text="row['{{ header.key }}']"></td>
+                        {% endfor %}
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-between items-center text-sm">
+        <button @click="currentPage--" :disabled="currentPage === 1" class="px-4 py-2 border rounded">Previous</button>
+        <span x-text="'Page ' + currentPage + ' of ' + totalPages"></span>
+        <button @click="currentPage++" :disabled="currentPage === totalPages" class="px-4 py-2 border rounded">Next</button>
+    </div>
+</div>
+
+<script>
+    function tableComponent(initialData) {
+        console.log("Table Data:", initialData);
+        return {
+            data: initialData,
+            search: '',
+            sortColumn: '',
+            sortAsc: true,
+            currentPage: 1,
+            perPage: 10,
+            get filteredData() {
+                if (!this.data) return [];
+                return this.data.filter(row => 
+                    Object.values(row).some(val => String(val).toLowerCase().includes(this.search.toLowerCase()))
+                );
+            },
+            get sortedData() {
+                if (!this.sortColumn) return this.filteredData;
+                return [...this.filteredData].sort((a, b) => {
+                    let modifier = this.sortAsc ? 1 : -1;
+                    if (a[this.sortColumn] < b[this.sortColumn]) return -1 * modifier;
+                    if (a[this.sortColumn] > b[this.sortColumn]) return 1 * modifier;
+                    return 0;
+                });
+            },
+            get paginatedData() {
+                let start = (this.currentPage - 1) * this.perPage;
+                return this.sortedData.slice(start, start + this.perPage);
+            },
+            get totalPages() {
+                return Math.ceil(this.sortedData.length / this.perPage);
+            },
+            sortBy(column) {
+                if (this.sortColumn === column) {
+                    this.sortAsc = !this.sortAsc;
+                } else {
+                    this.sortColumn = column;
+                    this.sortAsc = true;
+                }
+            }
+        }
+    }
+</script>
+{% endmacro %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Configure Component{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Configure: {{ component.name }}</h1>
+    
+    <div class="bg-white p-6 shadow rounded-lg">
+        <form id="component-config-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Associated Entity</label>
+                <select id="entity_select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                    <option value="">-- Select Entity --</option>
+                    {% for entity in entities %}
+                    <option value="{{ entity.id }}" {% if entity.id == component.entity_id %}selected{% endif %}>{{ entity.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div id="field_selector" class="hidden">
+                <label class="block text-sm font-medium text-gray-700">Fields to Include</label>
+                <div id="field_list" class="mt-2 space-y-2">
+                    <!-- Fields will be populated here -->
+                </div>
+            </div>
+            
+            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-800">Save Configuration</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const componentId = "{{ component.id }}";
+    const entitySelect = document.getElementById('entity_select');
+    const fieldList = document.getElementById('field_list');
+    const fieldSelector = document.getElementById('field_selector');
+    
+    // Function to load fields for an entity
+    async function loadFields(entityId) {
+        if (!entityId) {
+            fieldSelector.classList.add('hidden');
+            return;
+        }
+        
+        // Fetch fields (assuming an endpoint exists or we fetch via a new endpoint)
+        // For now, assume fields are available via a new API call
+        const response = await fetch(`/api/entities/${entityId}/fields`);
+        const fields = await response.json();
+        
+        fieldList.innerHTML = '';
+        fields.forEach(field => {
+            const checked = {{ component.field_ids | tojson | safe }}.includes(field.id) ? 'checked' : '';
+            fieldList.innerHTML += `
+                <div class="flex items-center">
+                    <input type="checkbox" name="field_ids" value="${field.id}" ${checked} class="rounded border-gray-300 text-primary focus:ring-primary">
+                    <label class="ml-2 text-sm text-gray-700">${field.label}</label>
+                </div>
+            `;
+        });
+        fieldSelector.classList.remove('hidden');
+    }
+    
+    entitySelect.addEventListener('change', (e) => loadFields(e.target.value));
+    
+    // Initial load if entity is already selected
+    if (entitySelect.value) {
+        loadFields(entitySelect.value);
+    }
+    
+    document.getElementById('component-config-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fieldIds = Array.from(document.querySelectorAll('input[name="field_ids"]:checked')).map(cb => cb.value);
+        
+        const response = await fetch(`/components/${componentId}/config`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                entity_id: entitySelect.value,
+                field_ids: fieldIds
+            })
+        });
+        
+        if (response.ok) {
+            alert('Configuration saved!');
+        } else {
+            alert('Error saving configuration.');
+        }
+    });
+</script>
+{% endblock %}

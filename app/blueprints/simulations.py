@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.extensions import db
 from app.models.simulation import SimulationState, PracticalTask
 from app.models.examination import ExamAttempt
-from app.simulations.engine import SimulationEngine
+from app.simulations.engine import evaluate_simulation
 from flask_login import login_required, current_user
 
 simulations_bp = Blueprint('simulations', __name__)

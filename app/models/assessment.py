@@ -22,8 +22,10 @@ class AssessmentComponent(db.Model):
     
     name = db.Column(db.String(64), nullable=False)
     component_type = db.Column(db.String(32), nullable=False) # objective_cbt, theory, etc.
+    enforced_question_type = db.Column(db.String(32), nullable=True) # If set, restricts question types in this component
     weight = db.Column(db.Float, default=1.0)
     
     configuration = db.Column(JSONB) # Randomization rules, time allocation
+    allowed_response_modes = db.Column(db.ARRAY(db.String(32)), default=['keyboard']) # ['keyboard', 'handwriting', 'file']
     
     questions = db.relationship('Question', backref='component', lazy='dynamic')

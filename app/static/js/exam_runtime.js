@@ -25,12 +25,44 @@ async function initExamRuntime(attemptId) {
 
     document.getElementById('next-btn').addEventListener('click', () => navigate(1));
     document.getElementById('prev-btn').addEventListener('click', () => navigate(-1));
+    document.getElementById('submit-btn').addEventListener('click', completeExam);
+}
+
+async function completeExam() {
+    if (!confirm("Are you sure you want to submit your exam? You won't be able to change your answers.")) {
+        return;
+    }
+
+    const response = await fetch(`/api/examinations/${currentAttemptId}/complete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        }
+    });
+
+    if (response.ok) {
+        // Disable UI
+        document.getElementById('exam-app').innerHTML = `
+            <div class="w-full text-center py-20 bg-white rounded-lg shadow">
+                <div class="text-green-500 text-6xl mb-4">✓</div>
+                <h2 class="text-3xl font-bold mb-4">Exam Submitted Successfully</h2>
+                <p class="text-gray-600 mb-8">Thank you for completing the examination. Your responses have been recorded.</p>
+                <a href="/results/${currentAttemptId}" class="bg-blue-700 text-white px-8 py-3 rounded-lg font-bold">View Results</a>
+            </div>
+        `;
+    } else {
+        alert("Failed to submit exam. Please try again.");
+    }
 }
 
 async function logIntegrity(eventType) {
     await fetch(`/api/examinations/${currentAttemptId}/integrity`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        },
         body: JSON.stringify({event_type: eventType})
     });
 }
@@ -69,19 +101,33 @@ function renderQuestion(index) {
             qCount++;
         });
     });
+
+    let inputHtml = '';
+    if (targetQuestion.type === 'mcq') {
+        inputHtml = `
+            <div class="space-y-2">
+                ${targetQuestion.options.map(opt => `
+                    <label class="block p-3 border rounded hover:bg-gray-50">
+                        <input type="radio" name="q-${targetQuestion.id}" value="${opt.id}" 
+                               ${responses[targetQuestion.id] === opt.id ? 'checked' : ''} 
+                               onchange="saveResponse('${targetQuestion.id}', '${opt.id}', '${targetComponentId}', 'mcq')">
+                        ${opt.content}
+                    </label>
+                    `).join('')}
+                    </div>
+                    `;
+                    } else if (targetQuestion.type === 'essay') {
+                    inputHtml = `
+                    <textarea class="w-full h-40 p-3 border rounded" 
+                          oninput="saveResponse('${targetQuestion.id}', this.value, '${targetComponentId}', 'essay')">
+                    ${responses[targetQuestion.id] || ''}
+                    </textarea>
+                    `;
+                    }
     
     container.innerHTML = `
         <h3 class="text-xl font-semibold mb-4">${targetQuestion.content.text || 'Question'}</h3>
-        <div class="space-y-2">
-            ${targetQuestion.options.map(opt => `
-                <label class="block p-3 border rounded hover:bg-gray-50">
-                    <input type="radio" name="q-${targetQuestion.id}" value="${opt.id}" 
-                           ${responses[targetQuestion.id] === opt.id ? 'checked' : ''} 
-                           onchange="saveResponse('${targetQuestion.id}', '${opt.id}', '${targetComponentId}')">
-                    ${opt.content}
-                </label>
-            `).join('')}
-        </div>
+        ${inputHtml}
     `;
 }
 
@@ -93,8 +139,15 @@ function navigate(direction) {
     }
 }
 
-async function saveResponse(questionId, optionId, componentId) {
-    responses[questionId] = optionId;
+async function saveResponse(questionId, responseValue, componentId, questionType) {
+    responses[questionId] = responseValue;
+    
+    let content = {};
+    if (questionType === 'mcq') {
+        content = {option_id: responseValue};
+    } else if (questionType === 'essay') {
+        content = {text: responseValue};
+    }
     
     // Auto-save via AJAX
     await fetch('/api/responses/', {
@@ -104,8 +157,8 @@ async function saveResponse(questionId, optionId, componentId) {
             attempt_id: currentAttemptId,
             component_id: componentId,
             question_id: questionId,
-            response_mode: 'mcq',
-            content: {option_id: optionId}
+            response_mode: questionType,
+            content: content
         })
     });
 }

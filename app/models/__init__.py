@@ -1,5 +1,7 @@
 from .core import Tenant, User, Role, AuditLog
 from .metadata import EntityDefinition, FieldDefinition, RelationshipDefinition, Record, RecordLink
+from .security import SecurityPolicy
+from .registry import ComponentRegistry
 from .question import Question, QuestionOption
 from .assessment import Assessment, AssessmentComponent
 from .examination import Examination, ExamAttempt

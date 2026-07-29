@@ -1,0 +1,18 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Edit User: {{ user.email }}</h1>
+<form method="POST" class="bg-white  p-6 rounded-lg shadow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-4">
+        <label class="block mb-2">Email</label>
+        <input type="email" name="email" value="{{ user.email }}" required class="border p-2 w-full"/>
+    </div>
+    <div class="mb-4">
+        <label class="flex items-center">
+            <input type="checkbox" name="is_superadmin" {% if user.is_superadmin %}checked{% endif %} class="mr-2"/>
+            Super Admin
+        </label>
+    </div>
+    <button type="submit" class="bg-blue-600 text-white p-2 rounded">Save Changes</button>
+</form>
+{% endblock %}

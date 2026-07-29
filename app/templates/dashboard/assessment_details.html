@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ assessment.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200  mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 ">{{ assessment.name }}</h2>
+        <p class="text-sm text-gray-500  mt-1">Tenant: {{ assessment.tenant_id }}</p>
+    </div>
+
+    <div class="space-y-6">
+        <h3 class="text-lg font-bold text-gray-800 ">Components</h3>
+        {% for component in assessment.components %}
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-md font-semibold text-gray-800 ">{{ component.name }} <span class="text-gray-500  text-sm font-normal">({{ component.component_type }})</span></h4>
+            </div>
+            
+            <div class="space-y-2">
+                {% for question in component.questions %}
+                <div class="p-4 bg-gray-50  rounded-lg border border-gray-100  text-sm">
+                    <p class="font-medium text-gray-800 ">{{ question.content.text }}</p>
+                    <p class="text-gray-500  text-xs mt-1">Type: {{ question.question_type }} | Marks: {{ question.marks }}</p>
+                </div>
+                {% else %}
+                <p class="text-sm text-gray-500  italic">No questions in this component.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-gray-500  italic">No components defined.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

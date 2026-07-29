@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.extensions import db
 
 class Examination(db.Model):
@@ -9,6 +9,7 @@ class Examination(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = db.Column(UUID(as_uuid=True), db.ForeignKey('tenants.id'), nullable=False)
     assessment_id = db.Column(UUID(as_uuid=True), db.ForeignKey('assessments.id'), nullable=False)
+    assessment = db.relationship('Assessment', backref='examinations')
     
     name = db.Column(db.String(128), nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
@@ -25,6 +26,7 @@ class ExamAttempt(db.Model):
     examination_id = db.Column(UUID(as_uuid=True), db.ForeignKey('examinations.id'), nullable=False)
     examination = db.relationship('Examination', backref='attempts')
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
+    user = db.relationship('User', backref='attempts')
     
     start_time = db.Column(db.DateTime, default=datetime.utcnow)
     end_time = db.Column(db.DateTime)
@@ -41,3 +43,4 @@ class IntegrityLog(db.Model):
     
     event_type = db.Column(db.String(64), nullable=False) # e.g., 'tab_switch', 'fullscreen_exit'
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    event_metadata = db.Column(JSONB, default={})

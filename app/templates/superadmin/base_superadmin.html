@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin | FLEXAM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        }
+    </script>
+    {% from 'macros/notifications.html' import flash_notifications %}
+</head>
+<body class="bg-gray-100 ">
+    {{ flash_notifications() }}
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div id="sidebar" class="w-64 bg-gray-900 text-white fixed h-full z-10 transition-transform duration-300 -translate-x-full lg:translate-x-0">
+            <div class="p-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Super Admin</h2>
+                <button onclick="toggleSidebar()" class="lg:hidden">✕</button>
+            </div>
+            <nav class="space-y-2 p-4">
+                <a href="{{ url_for('superadmin.dashboard') }}" class="block p-3 hover:bg-gray-800 rounded">System Overview</a>
+                <a href="{{ url_for('superadmin.list_tenants') }}" class="block p-3 hover:bg-gray-800 rounded">Tenants</a>
+                <a href="{{ url_for('superadmin.list_users') }}" class="block p-3 hover:bg-gray-800 rounded">Users</a>
+                <a href="{{ url_for('superadmin.list_audit_logs') }}" class="block p-3 hover:bg-gray-800 rounded">Audit Logs</a>
+                <a href="{{ url_for('superadmin.backup_database') }}" class="block p-3 bg-red-900 hover:bg-red-800 rounded text-red-100">Backup Database</a>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 lg:ml-64 flex flex-col h-full overflow-y-auto">
+            <header class="bg-white  shadow p-4 flex justify-between items-center">
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 ">☰</button>
+                <div class="font-semibold text-gray-700">Management Console</div>
+                <a href="{{ url_for('auth.logout') }}" class="text-red-500">Logout</a>
+            </header>
+            <main class="p-6">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

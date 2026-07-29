@@ -1,8 +1,10 @@
 import os
+from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'test-secret-key'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     
     # Celery & Redis
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://localhost:6379/0'
@@ -27,8 +29,16 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'postgresql://postgres:password@localhost:5432/flexam_test'
+    CELERY = {
+        'broker_url': 'memory://',
+        'result_backend': 'cache',
+        'cache_backend': 'memory',
+        'task_always_eager': True,
+        'task_eager_propagates': True,
+    }
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')

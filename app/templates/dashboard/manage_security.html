@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% from 'macros/ui.html' import input, button %}
+
+{% block title %}Manage Security Policies{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Manage Security Policies</h2>
+    
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+        <h3 class="font-bold mb-4">Add New Security Policy</h3>
+        <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Entity</label>
+                <select name="entity_definition_id" class="w-full p-2 border rounded">
+                    {% for entity in entities %}<option value="{{ entity.id }}">{{ entity.name }}</option>{% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select name="role_id" class="w-full p-2 border rounded">
+                    {% for role in roles %}<option value="{{ role.id }}">{{ role.name }}</option>{% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Action</label>
+                <select name="action" class="w-full p-2 border rounded">
+                    <option value="READ">READ</option>
+                    <option value="CREATE">CREATE</option>
+                    <option value="UPDATE">UPDATE</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+            </div>
+
+            {{ input('DB Column to Filter', 'db_column', required=true) }}
+            {{ input('User Attribute Key', 'user_attribute_key', required=true) }}
+            
+            <button type="submit" class="bg-primary text-white px-4 py-2 rounded">Save</button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <table class="w-full text-left">
+            <thead class="bg-gray-100 text-xs font-semibold">
+                <tr><th class="p-4">Entity</th><th class="p-4">Role</th><th class="p-4">Action</th></tr>
+            </thead>
+            <tbody>
+                {% for policy in policies %}
+                <tr class="border-t">
+                    <td class="p-4">{{ policy.entity_definition_id }}</td>
+                    <td class="p-4">{{ policy.role_id }}</td>
+                    <td class="p-4">{{ policy.action }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

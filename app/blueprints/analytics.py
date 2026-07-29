@@ -5,6 +5,11 @@ from flask_login import login_required
 
 analytics_bp = Blueprint('analytics', __name__)
 
+@analytics_bp.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    return render_template('dashboard/analytics.html')
+
 @analytics_bp.route('/summary', methods=['GET'])
 @login_required
 def get_summary():

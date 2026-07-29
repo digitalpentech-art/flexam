@@ -1,28 +1,38 @@
 {% extends 'base.html' %}
+{% from 'macros/table.html' import table %}
 
 {% block title %}Examiner Dashboard{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-8">
-    <h2 class="text-3xl font-extrabold text-gray-900">Examiner Dashboard</h2>
-    <div class="bg-white p-8 rounded-2xl shadow-sm">
-        <h3 class="text-xl font-bold mb-6">Pending Marking Tasks</h3>
-        <table class="w-full text-left">
-            <thead>
-                <tr class="text-gray-500 border-b">
-                    <th class="pb-4">Assessment</th>
-                    <th class="pb-4">Status</th>
-                    <th class="pb-4">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                <tr>
-                    <td class="py-4 font-medium">Mathematics Theory</td>
-                    <td class="py-4 text-orange-600 font-semibold">Pending Review</td>
-                    <td class="py-4"><a href="#" class="text-blue-600 font-semibold hover:text-blue-800 transition">Start Marking &rarr;</a></td>
-                </tr>
-            </tbody>
-        </table>
+<div class="max-w-7xl mx-auto space-y-6">
+    <h2 class="text-2xl font-bold text-gray-800 ">Examiner Dashboard</h2>
+    
+    <!-- Management Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 class="text-lg font-semibold text-gray-800  mb-4">Exam Management</h3>
+            <p class="text-sm text-gray-600  mb-4">View and manage assessments assigned to you.</p>
+            <a href="{{ url_for('admin.build_assessment') }}" class="text-primary font-semibold hover:underline">Manage Assessments &rarr;</a>
+        </div>
+        
+        <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 class="text-lg font-semibold text-gray-800  mb-4">Grading</h3>
+            <p class="text-sm text-gray-600  mb-4">Review and grade pending exam attempts.</p>
+            <a href="{{ url_for('grading.list_pending_grading') }}" class="text-primary font-semibold hover:underline">View Pending Grades &rarr;</a>
+        </div>
     </div>
+
+    <!-- Examinations List -->
+    {% set headers = [
+        {'key': 'name', 'label': 'Examination'},
+        {'key': 'action', 'label': 'Action', 'type': 'html'}
+    ] %}
+    {% set data = [] %}
+    {% for exam in examinations %}
+        {% set action = '<a href="' + url_for('grading.list_pending_grading') + '" class="text-primary font-semibold hover:underline transition">Grade &rarr;</a>' %}
+        {% set _ = data.append({'id': exam.id|string, 'name': exam.name, 'action': action}) %}
+    {% endfor %}
+
+    {{ table('examinations-table', headers, data) }}
 </div>
 {% endblock %}

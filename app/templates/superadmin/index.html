@@ -1,0 +1,94 @@
+{% extends "superadmin/base_superadmin.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Welcome Header -->
+    <div class="bg-gradient-to-r from-gray-900 to-indigo-900 text-white rounded-2xl p-6 shadow-md">
+        <h1 class="text-3xl font-extrabold tracking-tight">System Control Console</h1>
+        <p class="mt-2 text-indigo-200">System status and configuration console for FLEXAM platform.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Tenants -->
+        <div class="bg-white  p-6 rounded-2xl border border-gray-200  shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Tenants</p>
+                <h3 class="text-3xl font-bold text-gray-900 mt-1">{{ tenant_count }}</h3>
+            </div>
+            <div class="p-3 rounded-full bg-blue-50 text-primary text-2xl">
+                🏢
+            </div>
+        </div>
+
+        <!-- Users -->
+        <div class="bg-white  p-6 rounded-2xl border border-gray-200  shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Users</p>
+                <h3 class="text-3xl font-bold text-gray-900 mt-1">{{ user_count }}</h3>
+            </div>
+            <div class="p-3 rounded-full bg-green-50 text-green-600 text-2xl">
+                👤
+            </div>
+        </div>
+
+        <!-- Health Status -->
+        <div class="bg-white  p-6 rounded-2xl border border-gray-200  shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">System Status</p>
+                <h3 class="text-3xl font-bold text-green-600 mt-1">Healthy</h3>
+            </div>
+            <div class="p-3 rounded-full bg-red-50 text-red-600 text-2xl">
+                ⚡
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Quick Actions -->
+        <div class="bg-white  p-6 rounded-2xl border border-gray-200  shadow-sm lg:col-span-1 space-y-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Quick Actions</h3>
+            
+            <a href="{{ url_for('superadmin.create_tenant') }}" class="flex items-center gap-3 p-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl transition font-medium">
+                <span>➕</span> Create New Tenant
+            </a>
+
+            <a href="{{ url_for('superadmin.list_users') }}" class="flex items-center gap-3 p-3 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl transition font-medium">
+                <span>👥</span> Manage Users
+            </a>
+
+            <a href="{{ url_for('superadmin.backup_database') }}" class="flex items-center gap-3 p-3 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl transition font-medium">
+                <span>💾</span> Backup Database
+            </a>
+        </div>
+
+        <!-- Recent Audit Logs -->
+        <div class="bg-white  p-6 rounded-2xl border border-gray-200  shadow-sm lg:col-span-2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Recent Platform Activity</h3>
+                <a href="{{ url_for('superadmin.list_audit_logs') }}" class="text-xs font-semibold text-primary hover:underline uppercase tracking-wide">View All &rarr;</a>
+            </div>
+            {% if recent_logs %}
+                <ul class="divide-y divide-gray-100">
+                    {% for log in recent_logs %}
+                        <li class="py-3.5 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="p-2 rounded-lg bg-gray-100  text-gray-600  text-sm">
+                                    ⚙️
+                                </span>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800 ">{{ log.action }}</p>
+                                    <p class="text-xs text-gray-500">By user ID: {{ log.user_id or 'System' }}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-400 font-medium">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-sm text-gray-500 italic py-6 text-center">No platform activity recorded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

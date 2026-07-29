@@ -3,26 +3,61 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-8">
-    <h2 class="text-3xl font-extrabold text-gray-900">Student Dashboard</h2>
-    <div class="bg-white p-8 rounded-2xl shadow-sm">
-        <h3 class="text-xl font-bold mb-6">Available Examinations</h3>
-        <table class="w-full text-left">
-            <thead>
-                <tr class="text-gray-500 border-b">
-                    <th class="pb-4">Examination</th>
-                    <th class="pb-4">Status</th>
-                    <th class="pb-4">Action</th>
+<div class="max-w-7xl mx-auto space-y-6">
+    <h2 class="text-2xl font-bold text-gray-800 ">Student Dashboard</h2>
+    <div class="bg-white  p-6 rounded-lg shadow-sm border border-gray-200 ">
+        <h3 class="text-lg font-semibold text-gray-800  mb-4">Available Examinations</h3>
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-100  text-gray-700 uppercase text-xs font-semibold">
+                <tr>
+                    <th class="p-4">Examination</th>
+                    <th class="p-4">Start Time</th>
+                    <th class="p-4 text-right">Action</th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
-                <tr>
-                    <td class="py-4 font-medium">Mathematics Theory</td>
-                    <td class="py-4 text-green-600 font-semibold">Active</td>
-                    <td class="py-4"><a href="#" class="text-blue-600 font-semibold hover:text-blue-800 transition">Start Exam &rarr;</a></td>
+            <tbody class="divide-y divide-gray-200">
+                {% for exam in examinations %}
+                <tr class="hover:bg-gray-50  ">
+                    <td class="p-4 font-medium text-gray-800 ">{{ exam.name }}</td>
+                    <td class="p-4 text-gray-600 ">{{ exam.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="startExam('{{ exam.id }}')" class="text-primary font-semibold hover:underline transition">Start Exam &rarr;</button>
+                    </td>
                 </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="p-4 text-center text-gray-500">No examinations assigned.</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function startExam(examId) {
+        console.log('Starting exam:', examId);
+        const response = await fetch(`/api/examinations/${examId}/attempt`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Exam started:', data);
+            window.location.href = `/api/examinations/${data.id}/take`;
+        } else {
+            const error = await response.json();
+            console.error('Exam start failed:', error);
+            alert('Could not start exam: ' + (error.error || 'Unknown error'));
+        }
+    }
+</script>
 {% endblock %}

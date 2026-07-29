@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from 'macros/ui.html' import input, button, icon %}
+{% from 'macros/table.html' import table %}
+
+{% block title %}Manage Entities{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    {% set headers = [
+        {'key': 'name', 'label': 'Name'},
+        {'key': 'actions', 'label': 'Actions', 'type': 'html'}
+    ] %}
+    {% set data = [] %}
+    {% for entity in entities %}
+        {% set actions %}
+            <div class="flex gap-3 justify-end">
+                <a href="{{ url_for('admin.manage_fields', entity_id=entity.id) }}" title="Manage Fields" class="text-gray-500 hover:text-primary p-1 transition">
+                    {{ icon('manage', 'Manage Fields') }}
+                </a>
+                <a href="{{ url_for('admin.edit_entity', entity_id=entity.id) }}" title="Edit" class="text-gray-500 hover:text-primary p-1 transition">
+                    {{ icon('edit', 'Edit') }}
+                </a>
+                <form action="{{ url_for('admin.delete_entity', entity_id=entity.id) }}" method="POST" onsubmit="return confirm('Delete entity?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" title="Delete" class="text-gray-500 hover:text-red-600 p-1 transition">
+                        {{ icon('delete', 'Delete') }}
+                    </button>
+                </form>
+            </div>
+        {% endset %}
+        {% set entity_data = {'id': entity.id|string, 'name': entity.name, 'actions': actions|trim} %}
+        {% set _ = data.append(entity_data) %}
+    {% endfor %}
+
+    {{ table('entities-table', headers, data) }}
+
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Add New Entity</h2>
+        <form action="{{ url_for('admin.create_entity') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {{ input('Entity Name', 'name', required=true) }}
+            {{ input('Plural Name', 'plural_name') }}
+            {{ input('Description', 'description') }}
+            <button type="submit" class="w-full bg-primary text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-blue-800 transition">Create Entity</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
