@@ -8,7 +8,7 @@ services:
   - type: web
     name: flexam-web
     env: python
-    buildCommand: pip install -r requirements.txt && flask db upgrade
+    buildCommand: pip install -r requirements.txt && flask db upgrade && python scripts/seed_db_safe.py
     startCommand: gunicorn -c gunicorn_config.py run:app
     envVars:
       - key: DATABASE_URL
